@@ -80,9 +80,9 @@ local backdrop = {
 };--]]
 AzDropDown.backdrop = backdrop;
 
--- Used to copy backdrop colors from parent
+--[[ Used to copy backdrop colors from parent
 local backdropColor = CreateColor(0,0,0);
-local backdropBorderColor = CreateColor(0,0,0);
+local backdropBorderColor = CreateColor(0,0,0);]]
 
 -- Constants
 local MENU_ITEM_HEIGHT = 14;
@@ -92,7 +92,7 @@ local DEF_MAX_MENU_ITEMS = 16;
 --                                         Helper Functions                                           --
 --------------------------------------------------------------------------------------------------------
 
--- Used for both the DropDownMenuMixin & DropDownFrameMixin
+--[[Used for both the DropDownMenuMixin & DropDownFrameMixin
 local function ApplyBackdrop(self,backdrop,backdropColor,backdropBorderColor)
 	if (not backdropColor) then
 		backdropColor = backdrop and backdrop.backdropColor or AzDropDown.backdrop.backdropColor;
@@ -106,13 +106,13 @@ local function ApplyBackdrop(self,backdrop,backdropColor,backdropBorderColor)
 	self:SetBackdrop(backdrop);
 	self:SetBackdropColor(backdropColor:GetRGBA());
 	self:SetBackdropBorderColor(backdropBorderColor:GetRGBA());
-end
+end]]
 
 --------------------------------------------------------------------------------------------------------
 --                                        DropDown Menu Mixin                                         --
 --------------------------------------------------------------------------------------------------------
 
-local DropDownMenuMixin = { ApplyBackdrop = ApplyBackdrop };
+local DropDownMenuMixin = {};-- { ApplyBackdrop = ApplyBackdrop };
 
 -- Calls the parent's "initFunc" to query the items
 function DropDownMenuMixin:QueryItems(parent)
@@ -188,14 +188,14 @@ function DropDownMenuMixin:Initialize(parent,point,parentPoint)
 	self:SetFrameLevel(parent:GetFrameLevel() + 4);
 
 	-- Copy Backdrop from parent, or use default
-	local backdrop = parent:GetBackdrop();
+	--[[local backdrop = parent:GetBackdrop();
 	if (backdrop) then
 		backdropColor:SetRGB(parent:GetBackdropColor());
 		backdropBorderColor:SetRGBA(parent:GetBackdropBorderColor());
 		self:ApplyBackdrop(backdrop,backdropColor,backdropBorderColor);
 	else
 		self:ApplyBackdrop(AzDropDown.backdrop);
-	end
+	end]]
 
 	-- updates the menu items
 	self:UpdateItems();
@@ -245,7 +245,7 @@ end
 
 -- Create Dropdown Menu Item Button
 local function CreateMenuItem()
-	local item = CreateFrame("Button",nil,menu, BackdropTemplateMixin and "BackdropTemplate");
+	local item = CreateFrame("Button",nil,menu);
 	item:SetHeight(MENU_ITEM_HEIGHT);
 	item:SetHitRectInsets(-12,-10,0,0);
 	item:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight");
@@ -306,7 +306,7 @@ end
 
 -- Creates the DropDown menu with item buttons and scrollbar
 local function CreateDropDownMenu()
-	menu = CreateFrame("Frame",nil,nil, BackdropTemplateMixin and "BackdropTemplate");
+	menu = CreateFrame("Frame",nil,nil,BackdropTemplateMixin and "BackdropTemplate");
 
 	menu:SetToplevel(true);
 	menu:SetClampedToScreen(true);
@@ -314,7 +314,7 @@ local function CreateDropDownMenu()
 	menu:SetScript("OnHide",function(self) if (self:IsShown()) then self:Hide(); end end);	-- hides the menu if parent is hidden
 	menu:Hide();
 
-	menu.scroll = CreateFrame("ScrollFrame","AzDropDownScroll"..REVISION,menu,"FauxScrollFrameTemplate", BackdropTemplateMixin and "BackdropTemplate");
+	menu.scroll = CreateFrame("ScrollFrame","AzDropDownScroll"..REVISION,menu,"FauxScrollFrameTemplate");
 	menu.scroll:SetScript("OnVerticalScroll",function(self,offset) FauxScrollFrame_OnVerticalScroll(self,offset,MENU_ITEM_HEIGHT,self.UpdateScroll); end);
 	menu.scroll.UpdateScroll = UpdateScroll;
 
@@ -324,7 +324,11 @@ local function CreateDropDownMenu()
 
 	menu.items = {};
 	menu.list = setmetatable({},{ __index = function(t,k) t[k] = #storage > 0 and tremove(storage,#storage) or {}; return t[k]; end });
-
+	
+	local backdrop = AzDropDown.backdrop
+	menu:SetBackdrop(backdrop);
+	menu:SetBackdropColor(backdrop.backdropColor:GetRGBA());
+	menu:SetBackdropBorderColor(backdrop.backdropBorderColor:GetRGBA());
 	Mixin(menu,DropDownMenuMixin);
 end
 
@@ -361,7 +365,7 @@ end
 --                                        DropDown Frame Mixin                                        --
 --------------------------------------------------------------------------------------------------------
 
-local DropDownFrameMixin = { ApplyBackdrop = ApplyBackdrop };
+local DropDownFrameMixin = { }; --{ApplyBackdrop = ApplyBackdrop};
 
 -- Sets the text of the label, but can be called on the dropdown frame
 function DropDownFrameMixin:SetText(text)
@@ -402,10 +406,10 @@ function AzDropDown:CreateDropDown(parent,width,initFunc,selectValueFunc,isAutoS
 		return;
 	end
 
-	local dd = CreateFrame("Frame",nil,parent, BackdropTemplateMixin and "BackdropTemplate");
+	local dd = CreateFrame("Frame",nil,parent,BackdropTemplateMixin and "BackdropTemplate");
 	dd:SetSize(abs(width),24);
 
-	dd.button = CreateFrame("Button",nil,dd, BackdropTemplateMixin and "BackdropTemplate");
+	dd.button = CreateFrame("Button",nil,dd);
 	dd.button:SetPoint("TOPRIGHT");
 	dd.button:SetPoint("BOTTOMRIGHT");
 	dd.button:SetWidth(24);
@@ -422,10 +426,14 @@ function AzDropDown:CreateDropDown(parent,width,initFunc,selectValueFunc,isAutoS
 	dd.label:SetPoint("LEFT",dd,"LEFT",6,0);
 	dd.label:SetJustifyH("RIGHT");
 	dd.label:SetWordWrap(false);
-
+	
+	local backdrop = AzDropDown.backdrop
+	dd:SetBackdrop(backdrop);
+	dd:SetBackdropColor(backdrop.backdropColor:GetRGBA());
+	dd:SetBackdropBorderColor(backdrop.backdropBorderColor:GetRGBA());
 	Mixin(dd,DropDownFrameMixin);
-
-	dd:ApplyBackdrop(AzDropDown.backdrop);
+	
+	--dd:ApplyBackdrop(AzDropDown.backdrop);
 
 	-- dropdown display variables
 	dd.initFunc = initFunc;
