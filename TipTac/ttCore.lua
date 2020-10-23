@@ -533,8 +533,27 @@ function tt:ApplyBackdrop(self)
 		backdropBorderColor = CreateColor(unpack(cfg.tipBorderColor)),
 		backdropColor = CreateColor(unpack(cfg.tipColor)),
 	}
-	-- Fix from @hobulilan for embedded tooltips
+	
+	-- Fix from @hobulilan for azerite & corrupted item tooltips and embedded tooltips
+	local _, itemLink = self:GetItem();
+	if itemLink then
+		if C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItemByID(itemLink) or C_AzeriteItem.IsAzeriteItemByID(itemLink) then
+			style.overlayAtlasTop = "AzeriteTooltip-Topper";
+			style.overlayAtlasTopScale = .75;
+			style.overlayAtlasTopYOffset = 1;
+			style.overlayAtlasBottom = "AzeriteTooltip-Bottom";
+			style.overlayAtlasBottomYOffset = 2;
+			style.padding = { left = 3, right = 3, top = 3, bottom = 3 };
+		elseif IsCorruptedItem(itemLink) then
+			style.overlayAtlasTop = "Nzoth-tooltip-topper";
+			style.overlayAtlasTopScale = .75;
+			style.overlayAtlasTopYOffset = -2;
+			style.padding = { left = 3, right = 3, top = 3, bottom = 3 };
+		end
+	end
+	
 	if self.IsEmbedded then style = GAME_TOOLTIP_BACKDROP_STYLE_EMBEDDED end
+		
 	--- Code from SharedXML/SharedTooltipTemplates.lua - SharedTooltip_SetBackdropStyle();
 	self:SetBackdrop(style);
 	self:SetBackdropBorderColor((style.backdropBorderColor or TOOLTIP_DEFAULT_COLOR):GetRGBA());
