@@ -764,13 +764,20 @@ end
 function gttScriptHooks:OnShow()
 	-- Anchor GTT to Mouse -- Az: Initial mouse anchoring is now being done in GTT_SetDefaultAnchor (remove if there are no issues)
 	-- From path 9.0.1 there is an issue with mouse anchoring in buff frames, removing old comment block for the code below
-	gtt_anchorType, gtt_anchorPoint = GetAnchorPosition();
+	local parent = self:GetOwner();
+	if not parent then return end
+	if parent.time_mod then
+		if (self:GetAnchorType() == "mouse") and (self.default) then
+			self:ClearAllPoints();
+		end
+	end
+	--[[gtt_anchorType, gtt_anchorPoint = GetAnchorPosition();
 	if (gtt_anchorType == "mouse") and (self.default) then
 		local gttAnchor = self:GetAnchorType();
 		if (gttAnchor ~= "ANCHOR_CURSOR") and (gttAnchor ~= "ANCHOR_CURSOR_RIGHT") then
 			tt:AnchorFrameToMouse(self);
 		end
-	end
+	end]]
 	-- Ensures that default anchored world frame tips have the proper color, their internal function seems to set them to a dark blue color
 	-- Tooltips from world objects that change cursor seems to also require this. (Tested in 8.0/BfA)
 	if (self:IsOwned(UIParent)) and (not self:GetUnit()) then
@@ -888,9 +895,9 @@ function gttScriptHooks:OnTooltipCleared()
 end
 
 -- OnHide Script -- Used to default the background and border color
---function gttScriptHooks:OnHide()
---	tt:ApplyBackdrop(self);
---end
+function gttScriptHooks:OnHide()
+	self.default = nil;
+end
 
 --------------------------------------------------------------------------------------------------------
 --                                      GameTooltip Other Hooks                                       --
@@ -976,11 +983,11 @@ function tt:HookTips()
 	ResolveGlobalNamedObjects(TT_TipsToModify);
 
 	-- hook their OnHide script -- Az: OnHide hook disabled for now
---	for index, tipName in ipairs(TT_TipsToModify) do
---		if (type(tip) == "table") and (type(tip.GetObjectType) == "function") then
---			tip:HookScript("OnHide",gttScriptHooks.OnHide);
---		end
---	end
+	for index, tipName in ipairs(TT_TipsToModify) do
+		if (type(tip) == "table") and (type(tip.GetObjectType) == "function") then
+			tip:HookScript("OnHide",gttScriptHooks.OnHide);
+		end
+	end
 
 	-- Replace GameTooltip_SetDefaultAnchor (For Re-Anchoring) -- Patch 3.2 made this function secure
 	hooksecurefunc("GameTooltip_SetDefaultAnchor",GTT_SetDefaultAnchor);
@@ -1008,9 +1015,9 @@ function tt:AddModifiedTip(tip,noHooks)
 		TT_TipsToModify[#TT_TipsToModify + 1] = tip;
 
 		-- Az: Disabled the OnHide hook, unsure if it needs to be re-enabled,
---		if (not noHooks) then
---			tip:HookScript("OnHide",gttScriptHooks.OnHide);
---		end
+		if (not noHooks) then
+			tip:HookScript("OnHide",gttScriptHooks.OnHide);
+		end
 
 		-- Only apply settings if "cfg" has been initialised, meaning after VARIABLES_LOADED.
 		-- If AddModifiedTip() is called earlier, settings will be applied for all tips once VARIABLES_LOADED is fired anyway.
